@@ -1,0 +1,65 @@
+captainVersion: 4
+services:
+    $$cap_appname-db:
+        image: $$cap_db_type:$$cap_database_version
+        volumes:
+            - $$cap_appname-db-data:/var/lib/mysql
+        restart: always
+        environment:
+            MYSQL_ROOT_PASSWORD: $$cap_db_pass
+            MYSQL_DATABASE: magento
+            MYSQL_USER: $$cap_db_user
+            MYSQL_PASSWORD: $$cap_db_pass
+        caproverExtra:
+            notExposeAsWebApp: 'true'
+    $$cap_appname-magento:
+        depends_on:
+            - $$cap_appname-db
+        image: bitnami/magento:$$cap_magento_version
+        volumes:
+            - $$cap_appname-wp-data:/var/www/html
+        restart: always
+        environment:
+            ALLOW_EMPTY_PASSWORD: yes
+            MAGENTO_DATABASE_HOST: srv-captain--$$cap_appname-db:3306
+            MAGENTO_DATABASE_USER: $$cap_db_user
+            MAGENTO_DATABASE_PASSWORD: $$cap_db_pass
+            MAGENTO_DATABASE_NAME: magento
+caproverOneClickApp:
+    variables:
+        - id: $$cap_db_user
+          label: Database user
+          defaultValue: magentouser
+          validRegex: /^([a-zA-Z0-9])+$/
+        - id: $$cap_db_pass
+          label: Database password
+          description: ''
+          validRegex: /^(\w|[^\s"'\\])+$/
+        - id: $$cap_magento_version
+          label: Bitnami Magento Version
+          defaultValue: 'latest'
+          description: Check out their Docker page for the valid tags https://hub.docker.com/r/bitnami/magento/tags
+          validRegex: /^([^\s^\/])+$/
+        - id: $$cap_db_type
+          label: Database Type
+          defaultValue: mysql
+          description: You can either choose mariadb or mysql, you need to change the version according to which DB is selected. It is case sensitive.
+          validRegex: /^(mysql|mariadb)$/
+        - id: $$cap_database_version
+          label: Database Version, default is MySQL
+          defaultValue: '5.7'
+          description: Check out the Docker pages for the valid tags https://hub.docker.com/r/library/mysql/tags/ or https://hub.docker.com/_/mariadb?tab=tags
+          validRegex: /^([^\s^\/])+$/
+    instructions:
+        start: >-
+            Magento is a powerful open source e-commerce platform. With easy customizations and rich features, it allows retailers to grow their online businesses in a cost-effective way.
+            
+            Enter your Magento Configuration parameters and click on next. A MySQL (database) and a Magento container will be created for you. The process will take about a minute for the process to finish.
+        end: >
+            Magento is deployed and available as $$cap_appname-magento . 
+
+            IMPORTANT: It will take up to 2 minutes for Magento to be ready. Before that, you might see a 502 error page.
+    displayName: Magento
+    isOfficial: true
+    description: Magento is a content management system based on PHP and MySQL that is usually used with the MySQL or MariaDB database
+    documentation: Taken from https://hub.docker.com/r/bitnami/magento.
